@@ -8,8 +8,7 @@ namespace VRM
     [DisallowMultipleComponent]
     public class VRMBlendShapeProxy : MonoBehaviour, IVRMComponent
     {
-        [SerializeField]
-        public BlendShapeAvatar BlendShapeAvatar;
+        [SerializeField] public BlendShapeAvatar BlendShapeAvatar;
 
         public void OnImported(VRMImporterContext context)
         {
@@ -74,6 +73,7 @@ namespace VRM
             {
                 return 0;
             }
+
             return m_merger.GetValue(key);
         }
 
@@ -110,6 +110,16 @@ namespace VRM
             {
                 m_merger.Apply();
             }
+#if UNITY_EDITOR
+            else
+            {
+                if (!Application.isPlaying)
+                {
+                    m_merger = new BlendShapeMerger(BlendShapeAvatar.Clips, transform);
+                    m_merger.Apply();
+                }
+            }
+#endif
         }
     }
 
@@ -130,10 +140,12 @@ namespace VRM
         {
             proxy.ImmediatelySetValue(new BlendShapeKey(key), value);
         }
+
         public static void ImmediatelySetValue(this VRMBlendShapeProxy proxy, BlendShapePreset key, float value)
         {
             proxy.ImmediatelySetValue(new BlendShapeKey(key), value);
         }
+
         public static void AccumulateValue(this VRMBlendShapeProxy proxy, BlendShapePreset key, float value)
         {
             proxy.AccumulateValue(new BlendShapeKey(key), value);
@@ -144,10 +156,12 @@ namespace VRM
         {
             proxy.ImmediatelySetValue(new BlendShapeKey(key), value);
         }
+
         public static void ImmediatelySetValue(this VRMBlendShapeProxy proxy, String key, float value)
         {
             proxy.ImmediatelySetValue(new BlendShapeKey(key), value);
         }
+
         public static void AccumulateValue(this VRMBlendShapeProxy proxy, String key, float value)
         {
             proxy.AccumulateValue(new BlendShapeKey(key), value);
