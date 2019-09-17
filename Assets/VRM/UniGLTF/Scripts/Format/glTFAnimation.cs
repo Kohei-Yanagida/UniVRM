@@ -74,6 +74,7 @@ namespace UniGLTF
             Scale,
             Weight,
             BlendShape,
+            BlendShapeClip,
 
             NotImplemented
         }
@@ -96,6 +97,7 @@ namespace UniGLTF
                 case AnimationProperties.Scale:
                     return PATH_SCALE;
                 case AnimationProperties.BlendShape:
+                case AnimationProperties.BlendShapeClip:
                     return PATH_WEIGHT;
                 default: throw new NotImplementedException();
             }
@@ -113,6 +115,7 @@ namespace UniGLTF
                     return AnimationProperties.Scale;
                 case PATH_WEIGHT:
                     return AnimationProperties.BlendShape;
+              
                 default: throw new NotImplementedException();
             }
         }
@@ -132,6 +135,7 @@ namespace UniGLTF
                 case AnimationProperties.Rotation: return 4;
                 case AnimationProperties.Scale: return 3;
                 case AnimationProperties.BlendShape: return 1;
+                case AnimationProperties.BlendShapeClip: return 1;
                 default: throw new NotImplementedException();
             }
         }
@@ -200,8 +204,9 @@ namespace UniGLTF
         [JsonSchema(Required = true, MinItems = 1)]
         public List<glTFAnimationSampler> samplers = new List<glTFAnimationSampler>();
 
+        public glTFAnimation_extensions extensions;
+        
         // empty schemas
-        public object extensions;
         public object extras;
 
         protected override void SerializeMembers(GLTFJsonFormatter f)
@@ -213,6 +218,8 @@ namespace UniGLTF
 
             f.Key("channels"); f.GLTFValue(channels);
             f.Key("samplers"); f.GLTFValue(samplers);
+            f.Key("extensions"); f.GLTFValue(extensions);
+
         }
 
         [Obsolete]

@@ -7,39 +7,39 @@ public class VRMBlendShapeAnimation : MonoBehaviour
 {
     private VRMBlendShapeProxy _vrmBlendShapeProxy;
 
-    [SerializeField] private List<float> BlendShapeClips;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_NEUTRAL = 0.0f;
+    
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_A = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_A = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_I = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_I = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_U = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_U = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_E = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_E = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_O = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_O = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_BLINK = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_BLINK = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_JOY = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_JOY = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_ANGRY = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_ANGRY = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_SORROW = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_SORROW = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_FUN = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_FUN = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_LOOKUP = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_LOOKUP = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_LOOKDOWN = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_LOOKDOWN = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_LOOKLEFT = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_LOOKLEFT = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_LOOKRIGHT = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_LOOKRIGHT = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_LOOKBLINK_L = 0.0f;
 
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_LOOKBLINK_L = 0.0f;
-
-    [SerializeField] [Range(0.0f, 1.0f)] private float _value_LOOKBLINK_R = 0.0f;
+    [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_LOOKBLINK_R = 0.0f;
 
     private BlendShapeKey key_A;
     private BlendShapeKey key_I;
@@ -53,7 +53,7 @@ public class VRMBlendShapeAnimation : MonoBehaviour
     void OnEnable()
     {
       
-        if (!Application.isPlaying)
+    //    if (!Application.isPlaying)
         {
             if (_vrmBlendShapeProxy == null)
             {
@@ -74,21 +74,19 @@ public class VRMBlendShapeAnimation : MonoBehaviour
 
             var clip_O = _vrmBlendShapeProxy.BlendShapeAvatar.GetClip(BlendShapePreset.O);
             key_O = BlendShapeKey.CreateFrom(clip_O);
-
         }
-
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!Application.isPlaying)
+    //    if (!Application.isPlaying)
         {
-            blendShapeList.Add(new KeyValuePair<BlendShapeKey, float>(key_A, _value_A));
-            blendShapeList.Add(new KeyValuePair<BlendShapeKey, float>(key_I, _value_I));
-            blendShapeList.Add(new KeyValuePair<BlendShapeKey, float>(key_U, _value_U));
-            blendShapeList.Add(new KeyValuePair<BlendShapeKey, float>(key_E, _value_E));
-            blendShapeList.Add(new KeyValuePair<BlendShapeKey, float>(key_O, _value_O));
+            blendShapeList.Add(new KeyValuePair<BlendShapeKey, float>(key_A, _blendShapeClip_Value_A));
+            blendShapeList.Add(new KeyValuePair<BlendShapeKey, float>(key_I, _blendShapeClip_Value_I));
+            blendShapeList.Add(new KeyValuePair<BlendShapeKey, float>(key_U, _blendShapeClip_Value_U));
+            blendShapeList.Add(new KeyValuePair<BlendShapeKey, float>(key_E, _blendShapeClip_Value_E));
+            blendShapeList.Add(new KeyValuePair<BlendShapeKey, float>(key_O, _blendShapeClip_Value_O));
 
             _vrmBlendShapeProxy.SetValues(blendShapeList);
             _vrmBlendShapeProxy.Apply();

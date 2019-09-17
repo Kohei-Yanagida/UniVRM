@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VRM;
 #if UNITY_EDITOR
 using UnityEditor;
+
 #endif
 
 
 namespace UniGLTF
 {
-
     public static class AnimationExporter
     {
         public class InputOutputValues
@@ -32,6 +33,7 @@ namespace UniGLTF
             {
                 clips.Add(state.clip);
             }
+
             return clips;
         }
 
@@ -40,7 +42,8 @@ namespace UniGLTF
             var clips = new List<AnimationClip>();
 
             RuntimeAnimatorController runtimeAnimatorController = animator.runtimeAnimatorController;
-            UnityEditor.Animations.AnimatorController animationController = runtimeAnimatorController as UnityEditor.Animations.AnimatorController;
+            UnityEditor.Animations.AnimatorController animationController =
+                runtimeAnimatorController as UnityEditor.Animations.AnimatorController;
 
             if (animationController == null)
             {
@@ -54,6 +57,7 @@ namespace UniGLTF
                     clips.Add(state.state.motion as AnimationClip);
                 }
             }
+
             return clips;
         }
 
@@ -81,6 +85,10 @@ namespace UniGLTF
             {
                 return glTFAnimationTarget.AnimationProperties.Scale;
             }
+            else if ((property.StartsWith("_blendShapeClip")))
+            {
+                return glTFAnimationTarget.AnimationProperties.BlendShapeClip;
+            }
             else if (property.StartsWith("blendShape."))
             {
                 return glTFAnimationTarget.AnimationProperties.BlendShape;
@@ -97,14 +105,17 @@ namespace UniGLTF
             {
                 return 0;
             }
-            if (property.EndsWith(".y") || property.StartsWith("blendShape."))
+
+            if (property.EndsWith(".y") || property.StartsWith("blendShape.") || property.StartsWith("_blendShapeClip"))
             {
                 return 1;
             }
+
             if (property.EndsWith(".z"))
             {
                 return 2;
             }
+
             if (property.EndsWith(".w"))
             {
                 return 3;
@@ -125,6 +136,7 @@ namespace UniGLTF
 #if UNITY_5_6_OR_NEWER
             List<AnimationCurveData> curveDatum = new List<AnimationCurveData>();
 
+            int index = 0;
             foreach (var binding in AnimationUtility.GetCurveBindings(clip))
             {
                 var curve = AnimationUtility.GetEditorCurve(clip, binding);
@@ -135,13 +147,26 @@ namespace UniGLTF
                     Debug.LogWarning("Not Implemented keyframe property : " + binding.propertyName);
                     continue;
                 }
+
                 if (property == glTFAnimationTarget.AnimationProperties.EulerRotation)
                 {
                     Debug.LogWarning("Interpolation setting of AnimationClip should be Quaternion");
                     continue;
                 }
 
-                var nodeIndex = GetNodeIndex(root, nodes, binding.path);
+                if (property == glTFAnimationTarget.AnimationProperties.BlendShapeClip)
+                {
+                    if (animation.Animation.extensions == null)
+                    {
+                        Debug.Log("Animation extensions ");
+                        animation.Animation.extensions = new glTFAnimation_extensions()
+                        {
+                            VRM_BlendShapeClip_Animation = new VRM_BlendShapeClip_Animation()
+                        };
+                    }
+                }
+
+                var nodeIndex = string.IsNullOrEmpty(binding.path) ? 0 : GetNodeIndex(root, nodes, binding.path);
                 var samplerIndex = animation.Animation.AddChannelAndGetSampler(nodeIndex, property);
                 var elementCount = 0;
                 if (property == glTFAnimationTarget.AnimationProperties.BlendShape)
@@ -149,16 +174,23 @@ namespace UniGLTF
                     var mesh = nodes[nodeIndex].GetComponent<SkinnedMeshRenderer>().sharedMesh;
                     elementCount = mesh.blendShapeCount;
                 }
+
+                else if (property == glTFAnimationTarget.AnimationProperties.BlendShapeClip)
+                {
+                    var proxy = root.GetComponent<VRMBlendShapeProxy>();
+                    elementCount = proxy.BlendShapeAvatar.Clips.Count;
+                }
                 else
                 {
                     elementCount = glTFAnimationTarget.GetElementCount(property);
                 }
 
                 // 同一のsamplerIndexが割り当てられているcurveDataがある場合はそれを使用し、無ければ作る
-                    var curveData = curveDatum.FirstOrDefault(x => x.SamplerIndex == samplerIndex);
+                var curveData = curveDatum.FirstOrDefault(x => x.SamplerIndex == samplerIndex);
                 if (curveData == null)
                 {
-                    curveData = new AnimationCurveData(AnimationUtility.GetKeyRightTangentMode(curve, 0), property, samplerIndex, elementCount);
+                    curveData = new AnimationCurveData(AnimationUtility.GetKeyRightTangentMode(curve, 0), property,
+                        samplerIndex, elementCount);
                     curveDatum.Add(curveData);
                 }
 
@@ -171,6 +203,11 @@ namespace UniGLTF
                     var blendShapeName = binding.propertyName.Replace("blendShape.", "");
                     elementOffset = mesh.GetBlendShapeIndex(blendShapeName);
                     valueFactor = 0.01f;
+                }
+
+                if (property == glTFAnimationTarget.AnimationProperties.BlendShapeClip)
+                {
+                    elementOffset = index++;
                 }
                 else
                 {
@@ -209,7 +246,15 @@ namespace UniGLTF
                 foreach (var keyframe in curve.Keyframes)
                 {
                     values.Input[keyframeIndex] = keyframe.Time;
-                    Buffer.BlockCopy(keyframe.GetRightHandCoordinate(), 0, values.Output, keyframeIndex * elementNum * sizeof(float), elementNum * sizeof(float));
+
+                    var _input = values.Input[keyframeIndex];
+                    var _coordinate = keyframe.GetRightHandCoordinate();
+                    var _output = values.Output;
+                    var _offset = keyframeIndex * elementNum * sizeof(float);
+                    var _count = elementNum * sizeof(float);
+
+                    Buffer.BlockCopy(keyframe.GetRightHandCoordinate(), 0, values.Output,
+                        keyframeIndex * elementNum * sizeof(float), elementNum * sizeof(float));
                     keyframeIndex++;
                 }
             }
@@ -218,5 +263,5 @@ namespace UniGLTF
             return animation;
         }
 #endif
-        }
     }
+}

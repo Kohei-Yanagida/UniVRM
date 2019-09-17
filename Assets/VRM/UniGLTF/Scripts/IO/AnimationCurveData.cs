@@ -130,6 +130,7 @@ namespace UniGLTF
                 case glTFAnimationTarget.AnimationProperties.Scale:
                     return new AnimationKeyframeData(elementCount, null);
                 case glTFAnimationTarget.AnimationProperties.BlendShape:
+                case glTFAnimationTarget.AnimationProperties.BlendShapeClip:
                     return new AnimationKeyframeData(elementCount, null);
                 default:
                     return null;

@@ -279,7 +279,7 @@ namespace UniGLTF
             {
                 throw new UniGLTFException("unknown gltf version {0}", GLTF.asset.version);
             }
-
+            
             // Version Compatibility
             RestoreOlderVersionValues();
 
@@ -627,6 +627,7 @@ namespace UniGLTF
             yield return null;
         }
 
+     
         IEnumerator LoadMeshes()
         {
             var meshImporter = new MeshImporter();
