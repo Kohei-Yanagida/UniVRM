@@ -42,16 +42,12 @@ namespace UniGLTF
             {
                 return;
             }
-
             if (current < keyframes.Count)
             {
-                var rightTangent = (keyframes[current].value - keyframes[back].value) /
-                                   (keyframes[current].time - keyframes[back].time);
-                keyframes[back] = new Keyframe(keyframes[back].time, keyframes[back].value, keyframes[back].inTangent,
-                    rightTangent);
+                var rightTangent = (keyframes[current].value - keyframes[back].value) / (keyframes[current].time - keyframes[back].time);
+                keyframes[back] = new Keyframe(keyframes[back].time, keyframes[back].value, keyframes[back].inTangent, rightTangent);
 
-                var leftTangent = (keyframes[back].value - keyframes[current].value) /
-                                  (keyframes[back].time - keyframes[current].time);
+                var leftTangent = (keyframes[back].value - keyframes[current].value) / (keyframes[back].time - keyframes[current].time);
                 keyframes[current] = new Keyframe(keyframes[current].time, keyframes[current].value, leftTangent, 0);
             }
         }
@@ -66,10 +62,10 @@ namespace UniGLTF
             {
                 return new Quaternion(-rot.x, -rot.y, -rot.z, -rot.w);
             }
+
         }
 
         public delegate float[] ReverseZ(float[] current, float[] last);
-
         public static void SetAnimationCurve(
             AnimationClip targetClip,
             string relativePath,
@@ -94,7 +90,6 @@ namespace UniGLTF
             {
                 last[3] = 1.0f;
             }
-
             for (inputIndex = 0; inputIndex < input.Length; ++inputIndex)
             {
                 var time = input[inputIndex];
@@ -107,7 +102,6 @@ namespace UniGLTF
                     {
                         value[i] = output[outputIndex + elementNum + i];
                     }
-
                     var reversed = reverse(value, last);
                     last = reversed;
                     for (int i = 0; i < keyframes.Length; i++)
@@ -124,13 +118,11 @@ namespace UniGLTF
                 else
                 {
                     outputIndex = inputIndex * elementNum;
-                 
                     var value = new float[curveCount];
                     for (int i = 0; i < value.Length; i++)
                     {
                         value[i] = output[outputIndex + i];
                     }
-
                     var reversed = reverse(value, last);
                     last = reversed;
 
@@ -162,9 +154,6 @@ namespace UniGLTF
 
                 targetClip.SetCurve(relativePath, curveType, propertyNames[i], curves[i]);
             }
-            
-            Debug.Log("Animation Importer");
-            
         }
 
         public static List<AnimationClip> ImportAnimationClip(ImporterContext ctx)
@@ -172,13 +161,6 @@ namespace UniGLTF
             List<AnimationClip> animationClips = new List<AnimationClip>();
             for (int i = 0; i < ctx.GLTF.animations.Count; ++i)
             {
-                // VRMのBlendShapeClip
-                if (ctx.GLTF.animations[i].extensions != null &&
-                    ctx.GLTF.animations[i].extensions.VRM_BlendShapeClip_Animation != null)
-                {
-                    Debug.Log("Animation extensions");
-                }
-
                 var clip = new AnimationClip();
                 clip.ClearCurves();
                 clip.legacy = true;
@@ -187,7 +169,6 @@ namespace UniGLTF
                 {
                     clip.name = "legacy_" + i;
                 }
-
                 clip.wrapMode = WrapMode.Loop;
 
                 var animation = ctx.GLTF.animations[i];
@@ -203,110 +184,107 @@ namespace UniGLTF
                     switch (channel.target.path)
                     {
                         case glTFAnimationTarget.PATH_TRANSLATION:
-                        {
-                            var sampler = animation.samplers[channel.sampler];
-                            var input = ctx.GLTF.GetArrayFromAccessor<float>(sampler.input);
-                            var outputVector = ctx.GLTF.GetArrayFromAccessor<Vector3>(sampler.output);
-                            var output = new float[outputVector.Count() * 3];
-                            ArrayExtensions.Copy<Vector3, float>(
-                                new ArraySegment<Vector3>(outputVector),
-                                new ArraySegment<float>(output));
+                            {
+                                var sampler = animation.samplers[channel.sampler];
+                                var input = ctx.GLTF.GetArrayFromAccessor<float>(sampler.input);
+                                var outputVector = ctx.GLTF.GetArrayFromAccessor<Vector3>(sampler.output);
+                                var output = new float[outputVector.Count() * 3];
+                                ArrayExtensions.Copy<Vector3, float>(
+                                    new ArraySegment<Vector3>(outputVector),
+                                    new ArraySegment<float>(output));
 
-                            AnimationImporter.SetAnimationCurve(
-                                clip,
-                                relativePath,
-                                new string[] {"localPosition.x", "localPosition.y", "localPosition.z"},
-                                input,
-                                output,
-                                sampler.interpolation,
-                                typeof(Transform),
-                                (values, last) =>
-                                {
-                                    Vector3 temp = new Vector3(values[0], values[1], values[2]);
-                                    return temp.ReverseZ().ToArray();
-                                }
-                            );
-                        }
+                                AnimationImporter.SetAnimationCurve(
+                                    clip,
+                                    relativePath,
+                                    new string[] { "localPosition.x", "localPosition.y", "localPosition.z" },
+                                    input,
+                                    output,
+                                    sampler.interpolation,
+                                    typeof(Transform),
+                                    (values, last) =>
+                                    {
+                                        Vector3 temp = new Vector3(values[0], values[1], values[2]);
+                                        return temp.ReverseZ().ToArray();
+                                    }
+                                    );
+                            }
                             break;
 
                         case glTFAnimationTarget.PATH_ROTATION:
-                        {
-                            var sampler = animation.samplers[channel.sampler];
-                            var input = ctx.GLTF.GetArrayFromAccessor<float>(sampler.input);
-                            var outputVector = ctx.GLTF.GetArrayFromAccessor<Vector4>(sampler.output);
-                            var output = new float[outputVector.Count() * 4];
-                            ArrayExtensions.Copy<Vector4, float>(
-                                new ArraySegment<Vector4>(outputVector),
-                                new ArraySegment<float>(output));
+                            {
+                                var sampler = animation.samplers[channel.sampler];
+                                var input = ctx.GLTF.GetArrayFromAccessor<float>(sampler.input);
+                                var outputVector = ctx.GLTF.GetArrayFromAccessor<Vector4>(sampler.output);
+                                var output = new float[outputVector.Count() * 4];
+                                ArrayExtensions.Copy<Vector4, float>(
+                                    new ArraySegment<Vector4>(outputVector),
+                                    new ArraySegment<float>(output));
 
-                            AnimationImporter.SetAnimationCurve(
-                                clip,
-                                relativePath,
-                                new string[]
-                                    {"localRotation.x", "localRotation.y", "localRotation.z", "localRotation.w"},
-                                input,
-                                output,
-                                sampler.interpolation,
-                                typeof(Transform),
-                                (values, last) =>
-                                {
-                                    Quaternion currentQuaternion =
-                                        new Quaternion(values[0], values[1], values[2], values[3]);
-                                    Quaternion lastQuaternion = new Quaternion(last[0], last[1], last[2], last[3]);
-                                    return AnimationImporter.GetShortest(lastQuaternion, currentQuaternion.ReverseZ())
-                                        .ToArray();
-                                }
-                            );
+                                AnimationImporter.SetAnimationCurve(
+                                    clip,
+                                    relativePath,
+                                    new string[] { "localRotation.x", "localRotation.y", "localRotation.z", "localRotation.w" },
+                                    input,
+                                    output,
+                                    sampler.interpolation,
+                                    typeof(Transform),
+                                    (values, last) =>
+                                    {
+                                        Quaternion currentQuaternion = new Quaternion(values[0], values[1], values[2], values[3]);
+                                        Quaternion lastQuaternion = new Quaternion(last[0], last[1], last[2], last[3]);
+                                        return AnimationImporter.GetShortest(lastQuaternion, currentQuaternion.ReverseZ()).ToArray();
+                                    }
+                                );
 
-                            clip.EnsureQuaternionContinuity();
-                        }
+                                clip.EnsureQuaternionContinuity();
+                            }
                             break;
 
                         case glTFAnimationTarget.PATH_SCALE:
-                        {
-                            var sampler = animation.samplers[channel.sampler];
-                            var input = ctx.GLTF.GetArrayFromAccessor<float>(sampler.input);
-                            var outputVector = ctx.GLTF.GetArrayFromAccessor<Vector3>(sampler.output);
-                            var output = new float[outputVector.Count() * 3];
-                            ArrayExtensions.Copy<Vector3, float>(
-                                new ArraySegment<Vector3>(outputVector),
-                                new ArraySegment<float>(output));
+                            {
+                                var sampler = animation.samplers[channel.sampler];
+                                var input = ctx.GLTF.GetArrayFromAccessor<float>(sampler.input);
+                                var outputVector = ctx.GLTF.GetArrayFromAccessor<Vector3>(sampler.output);
+                                var output = new float[outputVector.Count() * 3];
+                                ArrayExtensions.Copy<Vector3, float>(
+                                    new ArraySegment<Vector3>(outputVector),
+                                    new ArraySegment<float>(output));
 
-                            AnimationImporter.SetAnimationCurve(
-                                clip,
-                                relativePath,
-                                new string[] {"localScale.x", "localScale.y", "localScale.z"},
-                                input,
-                                output,
-                                sampler.interpolation,
-                                typeof(Transform),
-                                (values, last) => values);
-                        }
+                                AnimationImporter.SetAnimationCurve(
+                                    clip,
+                                    relativePath,
+                                    new string[] { "localScale.x", "localScale.y", "localScale.z" },
+                                    input,
+                                    output,
+                                    sampler.interpolation,
+                                    typeof(Transform),
+                                    (values, last) => values);
+                            }
                             break;
 
                         case glTFAnimationTarget.PATH_WEIGHT:
-                        {
-                            var sampler = animation.samplers[channel.sampler];
-                            var input = ctx.GLTF.GetArrayFromAccessor<float>(sampler.input);
-                            var output = ctx.GLTF.GetArrayFromAccessor<float>(sampler.output);
-
-                            // VRMのBlendShapeClip
-                            if (ctx.GLTF.animations[i].extensions != null &&
-                                ctx.GLTF.animations[i].extensions.VRM_BlendShapeClip_Animation != null)
                             {
-                                relativePath = "exported";//ctx.Root.name;
-                                List<string> blendShapeClipNames = new List<string>();
+                                var sampler = animation.samplers[channel.sampler];
+                                var input = ctx.GLTF.GetArrayFromAccessor<float>(sampler.input);
+                                var output = ctx.GLTF.GetArrayFromAccessor<float>(sampler.output);
 
-                                foreach (var presetName in Enum.GetValues(typeof(BlendShapePreset)))
+                                if (ctx.GLTF.animations[i].extensions != null &&
+                                    ctx.GLTF.animations[i].extensions.VRM_BlendShapeClip_Animation != null)
                                 {
-                                    blendShapeClipNames.Add(Enum.GetName(typeof(BlendShapePreset), presetName));
-                                }
+                                    List<string> blendShapeClipNames = new List<string>();
 
-                                var names = blendShapeClipNames
-                                    .Where(x => !x.Equals(Enum.GetName(typeof(BlendShapePreset),BlendShapePreset.Unknown)))
-                                    .Select(x => "_blendShapeClip_Value_" + x).ToArray();
+                                    relativePath = "exported";
 
-                                AnimationImporter.SetAnimationCurve(
+                                    foreach (var presetName in Enum.GetValues(typeof(BlendShapePreset)))
+                                    {
+                                        blendShapeClipNames.Add(Enum.GetName(typeof(BlendShapePreset), presetName));
+                                    }
+                                                     
+                                    var names = blendShapeClipNames
+                                        .Where(x => !x.Equals(Enum.GetName(typeof(BlendShapePreset),BlendShapePreset.Unknown)))
+                                        .Select(x => "_blendShapeClip_Value_" + x).ToArray();
+
+                                    AnimationImporter.SetAnimationCurve(
                                     clip,
                                     relativePath,
                                     names,
@@ -315,9 +293,11 @@ namespace UniGLTF
                                     sampler.interpolation,
                                     typeof(VRMBlendShapeAnimation),
                                     (values, last) => values);
-                            }
-                            else
-                            {
+          
+                                }
+                                else
+                                {
+                                    
                                 var node = ctx.GLTF.nodes[channel.target.node];
                                 var mesh = ctx.GLTF.meshes[node.mesh];
                                 //var primitive = mesh.primitives.FirstOrDefault();
@@ -355,12 +335,12 @@ namespace UniGLTF
                                         {
                                             values[j] *= 100.0f;
                                         }
-
                                         return values;
                                     });
+                                    
+                                }
+                                
                             }
-                        }
-
                             break;
 
                         default:
@@ -368,7 +348,6 @@ namespace UniGLTF
                             break;
                     }
                 }
-
                 animationClips.Add(clip);
             }
 
@@ -380,19 +359,19 @@ namespace UniGLTF
             // animation
             if (ctx.GLTF.animations != null && ctx.GLTF.animations.Any())
             {
-             //   ctx.Root.AddComponent<VRMBlendShapeAnimation>();
                 var animation = ctx.Root.AddComponent<Animation>();
+                ctx.Root.AddComponent<VRMBlendShapeAnimation>();
                 ctx.AnimationClips = ImportAnimationClip(ctx);
                 foreach (var clip in ctx.AnimationClips)
                 {
                     animation.AddClip(clip, clip.name);
                 }
-
                 if (ctx.AnimationClips.Count > 0)
                 {
                     animation.clip = ctx.AnimationClips.First();
                 }
             }
         }
+
     }
 }

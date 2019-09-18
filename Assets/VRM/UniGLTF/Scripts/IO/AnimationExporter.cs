@@ -136,7 +136,6 @@ namespace UniGLTF
 #if UNITY_5_6_OR_NEWER
             List<AnimationCurveData> curveDatum = new List<AnimationCurveData>();
 
-            int index = 0;
             foreach (var binding in AnimationUtility.GetCurveBindings(clip))
             {
                 var curve = AnimationUtility.GetEditorCurve(clip, binding);
@@ -158,7 +157,6 @@ namespace UniGLTF
                 {
                     if (animation.Animation.extensions == null)
                     {
-                        Debug.Log("Animation extensions ");
                         animation.Animation.extensions = new glTFAnimation_extensions()
                         {
                             VRM_BlendShapeClip_Animation = new VRM_BlendShapeClip_Animation()
@@ -177,8 +175,7 @@ namespace UniGLTF
 
                 else if (property == glTFAnimationTarget.AnimationProperties.BlendShapeClip)
                 {
-                    var proxy = root.GetComponent<VRMBlendShapeProxy>();
-                    elementCount = proxy.BlendShapeAvatar.Clips.Count;
+                    elementCount = Enum.GetNames(typeof(BlendShapePreset)).Length - 1; // Unknownを除くPreset数固定
                 }
                 else
                 {
@@ -207,7 +204,15 @@ namespace UniGLTF
 
                 if (property == glTFAnimationTarget.AnimationProperties.BlendShapeClip)
                 {
-                    elementOffset = index++;
+                    string blendShapeClipName = binding.propertyName.Replace(VRMBlendShapeAnimation.Prefix, "");
+
+                    var presetNames 
+                        = Enum.GetNames(typeof(BlendShapePreset))
+                            .Where(x => !x.Equals(Enum.GetName(typeof(BlendShapePreset),BlendShapePreset.Unknown)))
+                            .ToList();
+                    
+                    Debug.Log( presetNames.IndexOf(blendShapeClipName));
+                    elementOffset = presetNames.IndexOf(blendShapeClipName);
                 }
                 else
                 {

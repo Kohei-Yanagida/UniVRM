@@ -7,6 +7,12 @@ public class VRMBlendShapeAnimation : MonoBehaviour
 {
     private VRMBlendShapeProxy _vrmBlendShapeProxy;
 
+    public static string Prefix
+    {
+        get { return "_blendShapeClip_Value_"; }
+    }
+    
+    
     [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_NEUTRAL = 0.0f;
     
     [SerializeField] [Range(0.0f, 1.0f)] private float _blendShapeClip_Value_A = 0.0f;
