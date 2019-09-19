@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using VRM;
 
@@ -246,6 +247,7 @@ namespace UniGLTF
                                 var input = ctx.GLTF.GetArrayFromAccessor<float>(sampler.input);
                                 var outputVector = ctx.GLTF.GetArrayFromAccessor<Vector3>(sampler.output);
                                 var output = new float[outputVector.Count() * 3];
+                                
                                 ArrayExtensions.Copy<Vector3, float>(
                                     new ArraySegment<Vector3>(outputVector),
                                     new ArraySegment<float>(output));
@@ -263,28 +265,33 @@ namespace UniGLTF
                             break;
 
                         case glTFAnimationTarget.PATH_WEIGHT:
+                        {
+                            var sampler = animation.samplers[channel.sampler];
+                            var input = ctx.GLTF.GetArrayFromAccessor<float>(sampler.input);
+                            var output = ctx.GLTF.GetArrayFromAccessor<float>(sampler.output);
+
+                            // VRM BlendShapeClip Animation
+                            if (ctx.GLTF.animations[i].extensions != null &&
+                                ctx.GLTF.animations[i].extensions.VRM_BlendShapeClip_Animation != null)
                             {
-                                var sampler = animation.samplers[channel.sampler];
-                                var input = ctx.GLTF.GetArrayFromAccessor<float>(sampler.input);
-                                var output = ctx.GLTF.GetArrayFromAccessor<float>(sampler.output);
-
-                                if (ctx.GLTF.animations[i].extensions != null &&
-                                    ctx.GLTF.animations[i].extensions.VRM_BlendShapeClip_Animation != null)
+                                if (targetTransform.GetComponent<VRMBlendShapeAnimation>() == null)
                                 {
-                                    List<string> blendShapeClipNames = new List<string>();
+                                    targetTransform.gameObject.AddComponent<VRMBlendShapeAnimation>();
+                                }
 
-                                    relativePath = "exported";
+                                List<string> blendShapeClipNames = new List<string>();
 
-                                    foreach (var presetName in Enum.GetValues(typeof(BlendShapePreset)))
-                                    {
-                                        blendShapeClipNames.Add(Enum.GetName(typeof(BlendShapePreset), presetName));
-                                    }
-                                                     
-                                    var names = blendShapeClipNames
-                                        .Where(x => !x.Equals(Enum.GetName(typeof(BlendShapePreset),BlendShapePreset.Unknown)))
-                                        .Select(x => "_blendShapeClip_Value_" + x).ToArray();
+                                foreach (var presetName in Enum.GetValues(typeof(BlendShapePreset)))
+                                {
+                                    blendShapeClipNames.Add(Enum.GetName(typeof(BlendShapePreset), presetName));
+                                }
 
-                                    AnimationImporter.SetAnimationCurve(
+                                var names = blendShapeClipNames
+                                    .Where(x => !x.Equals(Enum.GetName(typeof(BlendShapePreset),
+                                        BlendShapePreset.Unknown)))
+                                    .Select(x => "_blendShapeClip_Value_" + x).ToArray();
+
+                                AnimationImporter.SetAnimationCurve(
                                     clip,
                                     relativePath,
                                     names,
@@ -293,11 +300,9 @@ namespace UniGLTF
                                     sampler.interpolation,
                                     typeof(VRMBlendShapeAnimation),
                                     (values, last) => values);
-          
-                                }
-                                else
-                                {
-                                    
+                            }
+                            else
+                            {
                                 var node = ctx.GLTF.nodes[channel.target.node];
                                 var mesh = ctx.GLTF.meshes[node.mesh];
                                 //var primitive = mesh.primitives.FirstOrDefault();
@@ -335,12 +340,11 @@ namespace UniGLTF
                                         {
                                             values[j] *= 100.0f;
                                         }
+
                                         return values;
                                     });
-                                    
-                                }
-                                
                             }
+                        }
                             break;
 
                         default:
@@ -360,7 +364,7 @@ namespace UniGLTF
             if (ctx.GLTF.animations != null && ctx.GLTF.animations.Any())
             {
                 var animation = ctx.Root.AddComponent<Animation>();
-                ctx.Root.AddComponent<VRMBlendShapeAnimation>();
+             
                 ctx.AnimationClips = ImportAnimationClip(ctx);
                 foreach (var clip in ctx.AnimationClips)
                 {

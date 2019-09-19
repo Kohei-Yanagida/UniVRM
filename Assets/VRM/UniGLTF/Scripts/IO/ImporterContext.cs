@@ -627,7 +627,6 @@ namespace UniGLTF
             yield return null;
         }
 
-     
         IEnumerator LoadMeshes()
         {
             var meshImporter = new MeshImporter();
@@ -680,7 +679,10 @@ namespace UniGLTF
                 // connect root
                 if (Root == null)
                 {
-                    Root = new GameObject("_root_");
+                    var name = !string.IsNullOrEmpty(FilePath)
+                        ? System.IO.Path.GetFileNameWithoutExtension(FilePath)
+                        : "_root_";
+                    Root = new GameObject(name);
                 }
                 foreach (var x in GLTF.rootnodes)
                 {
@@ -805,6 +807,13 @@ namespace UniGLTF
             {
                 var meshDir = prefabPath.GetAssetFolder(".Meshes");
                 var meshPath = meshDir.Child(o.name.EscapeFilePath() + ".asset");
+                return meshPath;
+            }
+          
+            else if(o is AnimationClip)
+            {
+                var meshDir = prefabPath.GetAssetFolder(".Animation");
+                var meshPath = meshDir.Child(o.name.EscapeFilePath() + ".anim");
                 return meshPath;
             }
             else
